@@ -1,5 +1,7 @@
 # Haskell : LLVM Jit
 
+LLVM Targetting JIT written in Haskell for Great Good
+
 This is an implementation of a Jit targetting LLVM, built using Haskell and [this tutorial](http://www.stephendiehl.com/llvm) as a guide.
 
 My implementation is built on OSX Mavericks with LLVM 3.4 so any differences in configuration and implementation from the original tutorial may be due to that. Also I don't really expect anyone but me to ever look at or use this so don't expect much help if you clone it and it doesn't work for you.
