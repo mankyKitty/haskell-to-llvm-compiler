@@ -28,17 +28,17 @@ type SymbolTable = [(String, Operand)]
 
 data CodegenState = CodegenState {
   currentBlock :: Name -- name of the active block to append to
-  , blocks :: Map.Map Name BlockState -- blocks for function
-  , symtab :: SymbolTable -- Function scope symbol table
+  , blocks     :: Map.Map Name BlockState -- blocks for function
+  , symtab     :: SymbolTable -- Function scope symbol table
   , blockCount :: Int -- Count of basic blocks
-  , count :: Word -- Count of unnamed instructions
-  , names :: Names -- Name supply
+  , count      :: Word -- Count of unnamed instructions
+  , names      :: Names -- Name supply
   } deriving Show
 
 data BlockState = BlockState {
-  idx :: Int -- block index
+  idx     :: Int -- block index
   , stack :: [Named Instruction] -- Stack of instructions
-  , term :: Maybe (Named Terminator) -- block terminator
+  , term  :: Maybe (Named Terminator) -- block terminator
   } deriving Show
 
 newtype Codegen a = Codegen { runCodegen :: State CodegenState a }
@@ -59,22 +59,24 @@ addDefn d = do
   modify $ \s -> s { moduleDefinitions = defs ++ [d] }
 
 define :: Type -> String -> [(Type, Name)] -> [BasicBlock] -> LLVM ()
-define retty label argtys body = addDefn $
-                                 GlobalDefinition $ functionDefaults {
-                                   name = Name label
-                                   , parameters = ([Parameter ty nm [] | (ty, nm) <- argtys], False)
-                                   , returnType = retty
-                                   , basicBlocks = body
-                                   }
+define retty label argtys body =
+  addDefn $
+  GlobalDefinition $ functionDefaults {
+    name = Name label
+    , parameters = ([Parameter ty nm [] | (ty, nm) <- argtys], False)
+    , returnType = retty
+    , basicBlocks = body
+    }
 
 external :: Type -> String -> [(Type, Name)] -> LLVM ()
-external retty label argtys = addDefn $
-                              GlobalDefinition $ functionDefaults {
-                                name = Name label
-                                , parameters = ([Parameter ty nm [] | (ty, nm) <- argtys], False)
-                                , returnType = retty
-                                , basicBlocks = []
-                                }
+external retty label argtys =
+  addDefn $
+  GlobalDefinition $ functionDefaults {
+    name = Name label
+    , parameters = ([Parameter ty nm [] | (ty, nm) <- argtys], False)
+    , returnType = retty
+    , basicBlocks = []
+    }
 
 entry :: Codegen Name
 entry = gets currentBlock

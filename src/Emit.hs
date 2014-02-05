@@ -50,18 +50,6 @@ toSig :: [String] -> [(AST.Type, AST.Name)]
 toSig = map (\x -> (double, AST.Name x))
 
 cgen :: S.Expr -> Codegen AST.Operand
-cgen (S.UnaryOp op a) = do
-  cgen $ S.Call ("unary" ++ op) [a]
-cgen (S.Float n) = return $ cons $ C.Float (F.Double n)
-cgen (S.Var x) = getvar x >>= load
-cgen (S.Call fn args) = do
-  largs <- mapM cgen args
-  call (externf (AST.Name fn)) largs
-cgen (S.BinOp "=" (S.Var var) val) = do
-  a <- getvar var
-  cval <- cgen val
-  store a cval
-  return cval
 cgen (S.BinOp op a b) = do
   case Map.lookup op binops of
     Just f -> do
@@ -69,6 +57,11 @@ cgen (S.BinOp op a b) = do
       cb <- cgen b
       f ca cb
     Nothing -> error "No such operator"
+cgen (S.Var x) = getvar x >>= load
+cgen (S.Float n) = return $ cons $ C.Float (F.Double n)
+cgen (S.Call fn args) = do
+  largs <- mapM cgen args
+  call (externf (AST.Name fn)) largs
 
 liftError :: ErrorT String IO a -> IO a
 liftError = runErrorT >=> either fail return
@@ -84,11 +77,11 @@ codegen mod fns = do
     oldast = runLLVM mod modn
 
 binops = Map.fromList [
-  ("+", fadd)
-  , ("-", fsub)
-  , ("*", fmul)
-  , ("/", fdiv)
-  , ("<", lt)
+      ("+", fadd)
+    , ("-", fsub)
+    , ("*", fmul)
+    , ("/", fdiv)
+    , ("<", lt)
   ]
 
 lt :: AST.Operand -> AST.Operand -> Codegen AST.Operand

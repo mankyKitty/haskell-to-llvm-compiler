@@ -1,4 +1,4 @@
-module Jit where
+module JIT where
 
 import Data.Int
 import Data.Word
