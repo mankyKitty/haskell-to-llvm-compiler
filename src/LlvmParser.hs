@@ -29,6 +29,16 @@ expr = Ex.buildExpressionParser table factor
 variable :: Parser Expr
 variable = Var <$> identifier
 
+ifthen :: Parser Expr
+ifthen = do
+  reserved "if"
+  cond <- expr
+  reserved "then"
+  tr <- expr
+  reserved "else"
+  fl <- expr
+  return $ If cond tr fl
+
 function :: Parser Expr
 function = do
   reserved "def"
@@ -57,6 +67,7 @@ factor = try floating
          <|> try function
          <|> try call
          <|> variable
+         <|> ifthen
          <|> parens expr
 
 defn :: Parser Expr

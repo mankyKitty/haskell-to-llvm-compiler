@@ -238,3 +238,6 @@ store ptr val = instr $ Store False ptr val Nothing 0 []
 
 load :: Operand -> Codegen Operand
 load ptr = instr $ Load False ptr Nothing 0 []
+
+phi :: Type -> [(Operand, Name)] -> Codegen Operand
+phi ty incoming = instr $ Phi ty incoming []

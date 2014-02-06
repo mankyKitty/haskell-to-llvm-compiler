@@ -20,6 +20,12 @@ import JIT
 import Codegen
 import qualified Syntax as S
 
+one = cons $ C.Float (F.Double 1.0)
+zero = cons $ C.Float (F.Double 0.0)
+
+false = zero
+true = one
+
 codegenTop :: S.Expr -> LLVM ()
 codegenTop (S.Function name args body) = do
   define double name fnargs bls
@@ -50,6 +56,28 @@ toSig :: [String] -> [(AST.Type, AST.Name)]
 toSig = map (\x -> (double, AST.Name x))
 
 cgen :: S.Expr -> Codegen AST.Operand
+cgen (S.If cond tr fl) = do
+  ifthen <- addBlock "if.then"
+  ifelse <- addBlock "if.else"
+  ifexit <- addBlock "if.exit"
+                         -- %entry
+  cond <- cgen cond
+  test <- fcmp FP.ONE false cond
+  cbr test ifthen ifelse -- Branch based on the condition
+                         -- if.then
+  setBlock ifthen
+  trval <- cgen tr       -- Generate code for the true block
+  br ifexit              -- Branch ot the merge block
+  ifthen <- getBlock
+                         -- if.else
+  setBlock ifelse
+  flval <- cgen fl       -- Generate code for the false block
+  br ifexit
+  ifelse <- getBlock
+                         -- if.exit
+  setBlock ifexit
+  phi double [(trval, ifthen), (flval, ifelse)]
+  
 cgen (S.BinOp op a b) = do
   case Map.lookup op binops of
     Just f -> do
