@@ -16,7 +16,7 @@ import "mtl" Control.Monad.Error
 import Control.Applicative
 import qualified Data.Map as Map
 
-import Jit
+import JIT
 import Codegen
 import qualified Syntax as S
 

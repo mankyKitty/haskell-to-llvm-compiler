@@ -13,5 +13,6 @@ So far I've it configured so that all I need to do is the following to make it b
 ```
 $ cabal configure
 $ cabal install --only-dependencies
-$ cabal compile
+$ make
 ```
+To clean up just ```$ make clean```. 

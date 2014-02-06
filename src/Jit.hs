@@ -41,11 +41,11 @@ runJIT mod = do
     jit context $ \executionEngine ->
       runErrorT $ withModuleFromAST context mod $ \m ->
         withPassManager passes $ \pm -> do
-          -- Analysis Pass | Check we have a sane AST before optimisation
+          --Analysis Pass | Check we have a sane AST before optimisation
           runErrorT $ verify m
           -- Optimisation Pass | Returns a bool value we that
           -- we don't currently need.
-          _ <- runPassManager pm m
+          {-_ <- runPassManager pm m-}
           optmod <- moduleAST m
           s <- moduleLLVMAssembly m
           putStrLn s
