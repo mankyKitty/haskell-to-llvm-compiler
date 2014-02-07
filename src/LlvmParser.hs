@@ -13,9 +13,10 @@ import Syntax
 binary s assoc = Ex.Infix (reservedOp s >> return (BinOp s)) assoc
 
 table = [[binary "*" Ex.AssocLeft,
-          binary "/" Ex.AssocLeft,
-          binary "+" Ex.AssocLeft,
-          binary "-" Ex.AssocLeft]]
+          binary "/" Ex.AssocLeft]
+        ,[binary "+" Ex.AssocLeft,
+          binary "-" Ex.AssocLeft]
+        ,[binary "<" Ex.AssocLeft]]
 
 int :: Parser Expr
 int = integer >>= return . Float . fromInteger
@@ -38,6 +39,20 @@ ifthen = do
   reserved "else"
   fl <- expr
   return $ If cond tr fl
+
+for :: Parser Expr
+for = do
+  reserved "for"
+  var <- identifier
+  reservedOp "="
+  start <- expr
+  reservedOp ","
+  cond <- expr
+  reservedOp ","
+  step <- expr
+  reserved "in"
+  body <- expr
+  return $ For var start cond step body
 
 function :: Parser Expr
 function = do
@@ -68,6 +83,7 @@ factor = try floating
          <|> try call
          <|> variable
          <|> ifthen
+         <|> for
          <|> parens expr
 
 defn :: Parser Expr

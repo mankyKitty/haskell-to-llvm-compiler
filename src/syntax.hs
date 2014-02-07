@@ -10,6 +10,7 @@ data Expr = Float Double
           | Extern Name [Name]
           | UnaryOp Name Expr
           | If Expr Expr Expr
+          | For Name Expr Expr Expr Expr
           deriving (Eq, Ord, Show)
 
 data Op = Plus

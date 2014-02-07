@@ -27,13 +27,35 @@ process modo source = do
 processFile :: String -> IO (Maybe AST.Module)
 processFile fname = readFile fname >>= process initModule
 
+quit :: InputT IO ()
+quit = outputStrLn "Until next time!" >> return ()
+
+printHelp :: InputT IO ()
+printHelp = mapM_ outputStrLn listOfHelpItems
+  where
+    listOfHelpItems = [":q     -- Quit"
+                      ,":quit  -- Will also quit"
+                      ,":h     -- This help message"
+                      ,":reset -- clear the current AST"]
+
 repl :: IO ()
 repl = runInputT defaultSettings (loop initModule)
   where
     loop mod = do
       minput <- getInputLine "ready> "
       case minput of
-        Nothing -> outputStrLn "Goodbye"
+        -- Do nothing
+        Nothing ->  outputStrLn "Goodbye"
+        
+        -- We're expecting a command
+        Just (':':cmd) -> case cmd of
+          'h':_   -> printHelp >> loop mod
+          'q':_   -> quit
+          "quit"  -> quit
+          "reset" -> loop initModule
+          _       -> loop mod
+          
+        -- We've actual code input
         Just input -> do
           modn <- liftIO $ process mod input
           case modn of

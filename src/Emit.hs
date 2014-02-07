@@ -77,7 +77,29 @@ cgen (S.If cond tr fl) = do
                          -- if.exit
   setBlock ifexit
   phi double [(trval, ifthen), (flval, ifelse)]
-  
+
+cgen (S.For ivar start cond step body) = do
+  forloop <- addBlock "for.loop"
+  forexit <- addBlock "for.exit"
+                                 -- %entry
+  i <- alloca double
+  istart <- cgen start           -- Generate Loop variable initial value
+  stepval <- cgen step          -- Generate Loop variable step value
+  store i istart                 -- Store the loop variable initial value
+  assign ivar i                  -- Assign loop variable to the variable name
+  br forloop                     -- Branch to the loop block
+                                 -- for.loop
+  setBlock forloop
+  cgen body                      -- Generate the loop body
+  ival <- load i                 -- Load the current loop iteration
+  inext <- fadd ival stepval     -- Increment loop variable
+  store i inext
+  cond <- cgen cond              -- Generate the loop condition
+  test <- fcmp FP.ONE false cond -- Test if the loop condition is True
+  cbr test forloop forexit       -- Generate the loop condition
+  setBlock forexit
+  return zero
+
 cgen (S.BinOp op a b) = do
   case Map.lookup op binops of
     Just f -> do

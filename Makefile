@@ -4,9 +4,7 @@ EXTNS = -XPackageImports
 
 all:
 	$(CC) -fPIC -shared src/cbits.c -o src/cbits.so
-	ghc $(OPTS) $(EXTNS) src/cbits.so --make src/*.hs
-	mv src/Main kaleidoscope
-	chmod +x kaleidoscope
+	ghc $(OPTS) $(EXTNS) src/cbits.so --make src/*.hs -o kaleidoscope
 
 clean:
 	rm src/cbits.so
