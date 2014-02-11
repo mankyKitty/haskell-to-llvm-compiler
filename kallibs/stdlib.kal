@@ -9,6 +9,13 @@ def unary!(v)
 def unary-(v)
   0-v;
 
+# Greater than
+def binary> 4 (LHS RHS)
+  if LHS < RHS then
+    0
+  else
+    1;
+
 # Define logical or, which does not short circuit
 def binary| 5 (LHS RHS)
   if LHS then
@@ -23,7 +30,7 @@ def binary& 6 (LHS RHS)
   if !LHS then
     0
   else
-    !!RHS;
+    !(!RHS);
 
 # Define = with slightly lower precedence than relationals.
 def binary = 9 (LHS RHS)
