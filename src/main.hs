@@ -4,6 +4,7 @@ import LlvmParser
 import Codegen
 import Emit
 
+import Control.Monad (foldM)
 import "mtl" Control.Monad.Trans
 
 import System.IO
@@ -62,9 +63,18 @@ repl = runInputT defaultSettings (loop initModule)
             Just modn -> loop modn
             Nothing -> loop mod
 
+runMultipleFiles :: [FilePath] -> AST.Module -> IO ()
+runMultipleFiles [] _ = return ()
+runMultipleFiles (f:fs) ast = do
+  newast <- readFile f >>= process ast
+  case newast of
+    Nothing -> return ()
+    Just new -> runMultipleFiles fs new
+
 main :: IO ()
 main = do
   args <- getArgs
   case args of
     [] -> repl
-    [fname] -> processFile fname >> putStrLn "File Processed"
+    (fname:[]) -> processFile fname >> putStrLn "File Processed"
+    ls -> runMultipleFiles ls initModule

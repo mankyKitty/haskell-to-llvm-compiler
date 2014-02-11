@@ -121,6 +121,7 @@ cgen (S.Float n) = return $ cons $ C.Float (F.Double n)
 cgen (S.Call fn args) = do
   largs <- mapM cgen args
   call (externf (AST.Name fn)) largs
+cgen x = error (show x)
 
 liftError :: ErrorT String IO a -> IO a
 liftError = runErrorT >=> either fail return

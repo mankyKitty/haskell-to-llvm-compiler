@@ -14,7 +14,6 @@ import Syntax
 binary s assoc = Ex.Infix (reservedOp s >> return (BinOp s)) assoc
 
 binop = Ex.Infix (BinOp <$> op) Ex.AssocLeft
-
 unop = Ex.Prefix (UnaryOp <$> op)
 
 binops = [[binary "*" Ex.AssocLeft,
@@ -115,19 +114,17 @@ call = do
 factor :: Parser Expr
 factor = try floating
          <|> try int
-         <|> try extern
-         <|> try function
          <|> try call
-         <|> try binarydef
-         <|> try unarydef
-         <|> variable
+         <|> try variable
          <|> ifthen
          <|> for
-         <|> parens expr
+         <|> (parens expr)
 
 defn :: Parser Expr
 defn = try extern
        <|> try function
+       <|> try unarydef
+       <|> try binarydef
        <|> expr
 
 contents :: Parser a -> Parser a
