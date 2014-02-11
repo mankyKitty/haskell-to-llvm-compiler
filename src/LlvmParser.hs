@@ -1,6 +1,7 @@
 module LlvmParser where
 
 import Text.Parsec
+import Text.Parsec.Language (emptyDef)
 import Text.Parsec.String (Parser)
 import Control.Applicative ((<$>))
 
@@ -12,11 +13,28 @@ import Syntax
 
 binary s assoc = Ex.Infix (reservedOp s >> return (BinOp s)) assoc
 
-table = [[binary "*" Ex.AssocLeft,
-          binary "/" Ex.AssocLeft]
-        ,[binary "+" Ex.AssocLeft,
-          binary "-" Ex.AssocLeft]
-        ,[binary "<" Ex.AssocLeft]]
+binop = Ex.Infix (BinOp <$> op) Ex.AssocLeft
+
+unop = Ex.Prefix (UnaryOp <$> op)
+
+binops = [[binary "*" Ex.AssocLeft,
+           binary "/" Ex.AssocLeft]
+         ,[binary "+" Ex.AssocLeft,
+           binary "-" Ex.AssocLeft]
+         ,[binary "<" Ex.AssocLeft]]
+         
+operator :: Parser String
+operator = do
+  c <- Tok.opStart emptyDef
+  cs <- many $ Tok.opLetter emptyDef
+  return (c:cs)
+
+op :: Parser String
+op = do
+  whitespace
+  o <- operator
+  whitespace
+  return o
 
 int :: Parser Expr
 int = integer >>= return . Float . fromInteger
@@ -25,7 +43,26 @@ floating :: Parser Expr
 floating = Float <$> float
 
 expr :: Parser Expr
-expr = Ex.buildExpressionParser table factor
+expr = Ex.buildExpressionParser (binops ++ [[unop], [binop]])  factor
+
+binarydef :: Parser Expr
+binarydef = do
+  reserved "def"
+  reserved "binary"
+  o <- op
+  prec <- int
+  args <- parens $ many identifier
+  body <- expr
+  return $ BinaryDef o args body
+
+unarydef :: Parser Expr
+unarydef = do
+  reserved "def"
+  reserved "unary"
+  o <- op
+  args <- parens $ many identifier
+  body <- expr
+  return $ UnaryDef o args body
 
 variable :: Parser Expr
 variable = Var <$> identifier
@@ -81,6 +118,8 @@ factor = try floating
          <|> try extern
          <|> try function
          <|> try call
+         <|> try binarydef
+         <|> try unarydef
          <|> variable
          <|> ifthen
          <|> for

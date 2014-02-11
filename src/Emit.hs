@@ -27,6 +27,12 @@ false = zero
 true = one
 
 codegenTop :: S.Expr -> LLVM ()
+codegenTop (S.UnaryDef name args body) =
+  codegenTop $ S.Function ("unary" ++ name) args body
+
+codegenTop (S.BinaryDef name args body) =
+  codegenTop $ S.Function ("binary" ++ name) args body
+  
 codegenTop (S.Function name args body) = do
   define double name fnargs bls
   where
@@ -100,13 +106,16 @@ cgen (S.For ivar start cond step body) = do
   setBlock forexit
   return zero
 
+cgen (S.UnaryOp op a) = do
+  cgen $ S.Call ("unary" ++ op) [a]
+
 cgen (S.BinOp op a b) = do
   case Map.lookup op binops of
     Just f -> do
       ca <- cgen a
       cb <- cgen b
       f ca cb
-    Nothing -> error "No such operator"
+    Nothing -> cgen (S.Call ("binary" ++ op) [a,b])
 cgen (S.Var x) = getvar x >>= load
 cgen (S.Float n) = return $ cons $ C.Float (F.Double n)
 cgen (S.Call fn args) = do
